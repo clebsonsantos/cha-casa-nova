@@ -99,8 +99,8 @@ A imagem Docker está publicada em [`clebsantos/cha-de-casa-nova`](https://hub.d
 
 ```bash
 # 1. Baixe o compose e o exemplo de variáveis
-curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/main/docker-compose.prod.yml -o docker-compose.yml
-curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/main/.env.prod.example -o .env
+curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/master/docker-compose.prod.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/master/.env.prod.example -o .env
 
 # 2. Edite o .env com suas credenciais
 nano .env
