@@ -22,7 +22,7 @@ function ThankYouContent() {
     if (status !== "checking" || !paymentId) return;
 
     let attempts = 0;
-    const MAX_ATTEMPTS = 6; // 6 × 3s = 18s
+    const MAX_ATTEMPTS = 20; // 20 × 3s = 60s
     const INTERVAL = 3000;
 
     const check = async () => {

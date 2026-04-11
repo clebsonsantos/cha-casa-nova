@@ -45,8 +45,9 @@ export default function CheckoutModal({ item, method, onClose }: CheckoutModalPr
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao criar pagamento");
 
-      // Redirect to Mercado Pago
-      window.location.href = data.checkoutUrl;
+      // Abre o checkout do MP em nova aba e mantém nossa página fazendo polling
+      window.open(data.checkoutUrl, "_blank", "noopener");
+      window.location.href = `/obrigado?payment_id=${data.paymentId}&status=pending`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro inesperado");
       setLoading(false);
