@@ -8,7 +8,7 @@ const updateSchema = z.object({
   description: z.string().min(1).optional(),
   pixPrice: z.number().positive().optional(),
   cardPrice: z.number().positive().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")).optional(),
+  imageUrl: z.string().optional(),
   active: z.boolean().optional(),
 });
 

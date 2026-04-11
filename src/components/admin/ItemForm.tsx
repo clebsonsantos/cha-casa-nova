@@ -29,6 +29,8 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
   const rawKey = (url: string) => {
     if (!url) return "";
     if (url.startsWith("/api/image?key=")) return decodeURIComponent(url.replace("/api/image?key=", ""));
+    // URLs presigned antigas do R2 expiram — limpa para o usuário re-fazer upload
+    if (url.includes("r2.cloudflarestorage.com")) return "";
     return url;
   };
   // Armazena a key do R2 (ex: "uploads/xxx.jpg") — nunca a URL pública
