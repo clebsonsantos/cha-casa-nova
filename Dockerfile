@@ -39,10 +39,12 @@ COPY --from=builder /app/public           ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static     ./.next/static
 
-# Prisma: schema + engine + client
-COPY --from=builder /app/prisma            ./prisma
-COPY --from=builder /app/node_modules/.prisma  ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma  ./node_modules/@prisma
+# Prisma: schema + engine + client + CLI
+COPY --from=builder /app/prisma                    ./prisma
+COPY --from=builder /app/node_modules/.prisma      ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma      ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma       ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma  ./node_modules/.bin/prisma
 
 # bcryptjs necessário para o entrypoint de seed
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs

@@ -19,9 +19,9 @@ echo "▶ [prod] Rodando migrations..."
 # migrate deploy aplica migrations existentes (não altera esquema direto)
 # db push é fallback para projetos sem pasta migrations/
 if [ -d "./prisma/migrations" ] && [ "$(ls -A ./prisma/migrations 2>/dev/null)" ]; then
-  npx prisma migrate deploy --schema=./prisma/schema.prisma
+  ./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
 else
-  npx prisma db push --schema=./prisma/schema.prisma --skip-generate
+  ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --skip-generate
 fi
 
 echo "▶ [prod] Rodando seed (pula se dados já existem)..."
