@@ -89,29 +89,54 @@ O entrypoint cuida automaticamente de:
 | http://localhost:3000 | Vitrine pública |
 | http://localhost:3000/admin | Painel administrativo |
 
-Login padrão: `admin` / `admin123` — **troque a senha após o primeiro acesso**.
+Login padrão: `admin.master` / `admin123` — **troque a senha após o primeiro acesso**.
 
 ## Produção
 
-**1. Crie o arquivo de variáveis**
+A imagem Docker está publicada em [`clebsantos/cha-de-casa-nova`](https://hub.docker.com/r/clebsantos/cha-de-casa-nova). Não é necessário clonar o repositório para fazer o deploy.
+
+**Deploy em um único comando**
 
 ```bash
-cp .env.example .env.prod
+# 1. Baixe o compose e o exemplo de variáveis
+curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/main/docker-compose.prod.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/clebsonsantos/cha-casa-nova/main/.env.prod.example -o .env
+
+# 2. Edite o .env com suas credenciais
+nano .env
+
+# 3. Suba
+docker compose up -d
 ```
 
-Preencha todas as variáveis, incluindo as credenciais do R2 e Mercado Pago, e um `JWT_SECRET` forte.
+O comando `docker compose up -d` baixa a imagem automaticamente do Docker Hub e inicia os serviços.
 
-**2. Suba em produção**
+> Para atualizar para uma versão mais nova:
+> ```bash
+> docker compose pull && docker compose up -d
+> ```
 
-```bash
-docker compose -f docker-compose.prod.yml up -d --build
+**Variáveis obrigatórias no `.env`**
+
+| Variável | Descrição |
+|----------|-----------|
+| `POSTGRES_PASSWORD` | Senha do banco (use algo forte) |
+| `JWT_SECRET` | Segredo JWT — mínimo 32 caracteres aleatórios |
+| `NEXT_PUBLIC_APP_URL` | URL pública do site, ex: `https://meu-dominio.com.br` |
+
+As demais (R2, Mercado Pago) podem ficar em branco e ser configuradas depois pelo painel `/admin/settings`.
+
+**Banco externo (opcional)**
+
+Para usar um banco externo (Supabase, Neon, etc.), remova o serviço `db` do compose e defina `DATABASE_URL` diretamente:
+
+```env
+DATABASE_URL=postgresql://user:senha@host:5432/dbname
 ```
-
-O banco de dados não expõe porta externamente. Para usar um banco externo (ex: Supabase, Neon), basta apontar `DATABASE_URL` diretamente e remover o serviço `db` do compose.
 
 **Reverse proxy (opcional)**
 
-O `docker-compose.prod.yml` inclui um bloco comentado com Nginx. Para usar SSL com Let's Encrypt, descomente o serviço `nginx` e configure o `nginx.conf` apontando para `app:3000`.
+O `docker-compose.yml` inclui um bloco comentado com Nginx. Para usar SSL com Let's Encrypt, descomente o serviço `nginx` e configure o `nginx.conf` apontando para `app:3000`.
 
 ## Configuração pelo painel admin
 

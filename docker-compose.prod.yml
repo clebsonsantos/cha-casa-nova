@@ -22,9 +22,7 @@ services:
       retries: 10
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: clebsantos/cha-de-casa-nova:latest
     restart: always
     depends_on:
       db:
