@@ -2,10 +2,14 @@
 set -e
 
 echo "▶ [prod] Aguardando o banco de dados..."
-until npx prisma db execute --schema=./prisma/schema.prisma --stdin <<'SQL' > /dev/null 2>&1
-SELECT 1;
-SQL
-do
+until node -e "
+const net = require('net');
+const url = new URL(process.env.DATABASE_URL);
+const port = parseInt(url.port) || 5432;
+const host = url.hostname;
+const c = net.connect(port, host, () => { c.destroy(); process.exit(0); });
+c.on('error', () => process.exit(1));
+" 2>/dev/null; do
   echo "   banco ainda não disponível, aguardando 2s..."
   sleep 2
 done
