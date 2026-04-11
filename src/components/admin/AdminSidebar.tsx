@@ -130,7 +130,6 @@ export default function AdminSidebar({ adminName }: AdminSidebarProps) {
 
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-100 flex items-center justify-between px-4 h-14">
-        <h2 className="font-[var(--font-playfair)] font-bold text-[#6DB567]">Admin</h2>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
           className="p-2 rounded-xl hover:bg-gray-100"
@@ -139,6 +138,8 @@ export default function AdminSidebar({ adminName }: AdminSidebarProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+        <h2 className="font-[var(--font-playfair)] font-bold text-[#6DB567]">Admin</h2>
+        <div className="w-10" />{/* espaço para centralizar o título */}
       </div>
 
       {/* Mobile overlay */}

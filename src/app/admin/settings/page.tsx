@@ -46,13 +46,15 @@ function Field({
 
 function SaveBar({ saving, saved, error }: { saving: boolean; saved: boolean; error: string }) {
   return (
-    <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
-      {error && <span className="text-sm text-red-500">{error}</span>}
-      {saved && <span className="text-sm text-[#6DB567] font-medium">✓ Salvo!</span>}
+    <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 mt-6">
+      <div>
+        {error && <span className="text-sm text-red-500">{error}</span>}
+        {saved && <span className="text-sm text-[#6DB567] font-medium">✓ Salvo!</span>}
+      </div>
       <button
         type="submit"
         disabled={saving}
-        className="bg-[#A9DCA4] hover:bg-[#6DB567] text-white font-semibold px-6 py-2.5 rounded-2xl transition-colors disabled:opacity-60 text-sm"
+        className="w-full sm:w-auto bg-[#A9DCA4] hover:bg-[#6DB567] text-white font-semibold px-6 py-3 rounded-2xl transition-colors disabled:opacity-60 text-sm"
       >
         {saving ? "Salvando..." : "Salvar"}
       </button>
@@ -155,7 +157,7 @@ function SettingsContent() {
 
   if (loading) {
     return (
-      <div className="p-6 lg:p-8 pt-20 lg:pt-8 space-y-3">
+      <div className="p-6 lg:p-8 pt-20 lg:pt-8 space-y-3 w-full max-w-3xl">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-12 bg-white rounded-2xl animate-pulse border border-gray-100" />
         ))}
@@ -164,27 +166,38 @@ function SettingsContent() {
   }
 
   return (
-    <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-3xl">
+    <div className="p-6 lg:p-8 pt-20 lg:pt-8 max-w-3xl w-full">
       <h1 className="font-[var(--font-playfair)] text-2xl font-bold text-gray-800 mb-6">
         Configurações
       </h1>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-6 overflow-x-auto">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 min-w-max text-sm font-medium px-4 py-2 rounded-xl transition-colors whitespace-nowrap ${
-              activeTab === tab
-                ? "bg-white text-gray-800 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Tabs — select no mobile, pills no desktop */}
+      <div className="mb-6">
+        <select
+          className="sm:hidden w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#A9DCA4]"
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value as Tab)}
+        >
+          {TABS.map((tab) => (
+            <option key={tab} value={tab}>{tab}</option>
+          ))}
+        </select>
+        <div className="hidden sm:flex gap-1 bg-gray-100 p-1 rounded-2xl overflow-x-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 min-w-max text-sm font-medium px-4 py-2 rounded-xl transition-colors whitespace-nowrap ${
+                activeTab === tab
+                  ? "bg-white text-gray-800 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Personalização ── */}
@@ -302,7 +315,7 @@ function SettingsContent() {
 
       {/* ── Pagamentos (MP) ── */}
       {activeTab === "Pagamentos" && (
-        <form onSubmit={handleSave} className="bg-white rounded-3xl border border-gray-100 p-6 space-y-5">
+        <form onSubmit={handleSave} className="bg-white rounded-3xl border border-gray-100 p-6 space-y-5 overflow-hidden">
           <p className="text-sm text-gray-400">
             Credenciais do Mercado Pago. Acesse{" "}
             <a href="https://www.mercadopago.com.br/developers" target="_blank" rel="noopener noreferrer" className="text-[#6DB567] hover:underline">
@@ -316,8 +329,8 @@ function SettingsContent() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-700 mb-1">URL do Webhook</p>
-            <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3">
-              <code className="text-xs text-gray-500 flex-1 truncate">
+            <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3 min-w-0 overflow-hidden">
+              <code className="text-xs text-gray-500 flex-1 break-all min-w-0">
                 {typeof window !== "undefined" ? window.location.origin : "https://seu-dominio.com"}/api/webhook/mercadopago
               </code>
               <button type="button" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/webhook/mercadopago`)} className="text-xs text-[#6DB567] hover:underline flex-shrink-0">
@@ -361,8 +374,8 @@ function SettingsContent() {
           {adminError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-600">{adminError}</div>
           )}
-          <div className="flex items-center gap-4 pt-4 border-t border-gray-100 mt-6">
-            <button type="submit" disabled={adminSaving} className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-2xl transition-colors disabled:opacity-60 text-sm">
+          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-gray-100 mt-6">
+            <button type="submit" disabled={adminSaving} className="w-full sm:w-auto bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-3 rounded-2xl transition-colors disabled:opacity-60 text-sm">
               {adminSaving ? "Criando..." : "Criar administrador"}
             </button>
             {adminSaved && <span className="text-sm text-[#6DB567] font-medium">✓ Admin criado!</span>}
