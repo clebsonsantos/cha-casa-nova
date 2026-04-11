@@ -1,0 +1,62 @@
+# ─── PRODUÇÃO ──────────────────────────────────────────────────────────
+# Uso: docker compose -f docker-compose.prod.yml up -d --build
+#
+# Requer arquivo .env.prod (ou variáveis de ambiente no servidor).
+# O banco pode ser externo (basta apontar DATABASE_URL).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data_prod:/var/lib/postgresql/data
+    # Não expõe porta externamente em produção — acesso interno via rede Docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:         postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET:           ${JWT_SECRET}
+      R2_ACCOUNT_ID:        ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID:     ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME:       ${R2_BUCKET_NAME}
+      R2_PUBLIC_URL:        ${R2_PUBLIC_URL}
+      MP_ACCESS_TOKEN:      ${MP_ACCESS_TOKEN}
+      MP_PUBLIC_KEY:        ${MP_PUBLIC_KEY}
+      NEXT_PUBLIC_APP_URL:  ${NEXT_PUBLIC_APP_URL}
+      NODE_ENV:             production
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+
+  # Opcional: Nginx como reverse-proxy com SSL (descomente se precisar)
+  # nginx:
+  #   image: nginx:alpine
+  #   restart: always
+  #   depends_on:
+  #     - app
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+
+volumes:
+  pg_data_prod:

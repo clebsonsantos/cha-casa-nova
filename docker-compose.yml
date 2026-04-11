@@ -1,0 +1,59 @@
+# ─── DESENVOLVIMENTO LOCAL ─────────────────────────────────────────────
+# Uso: docker compose up --build
+#
+# Hot-reload ativado via volume mount do código-fonte.
+# node_modules e .prisma ficam DENTRO do container (binários Alpine corretos).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-cha_casa_nova}
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:         postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-cha_casa_nova}
+      JWT_SECRET:           ${JWT_SECRET:-dev-secret-mude-em-producao}
+      R2_ACCOUNT_ID:        ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID:     ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_NAME:       ${R2_BUCKET_NAME:-}
+      R2_PUBLIC_URL:        ${R2_PUBLIC_URL:-}
+      MP_ACCESS_TOKEN:      ${MP_ACCESS_TOKEN:-}
+      MP_PUBLIC_KEY:        ${MP_PUBLIC_KEY:-}
+      NEXT_PUBLIC_APP_URL:  ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    volumes:
+      # Código-fonte montado para hot-reload
+      - .:/app
+      # Volumes anônimos isolam os diretórios que precisam de binários Alpine:
+      # o Docker usa a versão da imagem (compilada para musl), não a do host
+      - app_node_modules:/app/node_modules
+      - app_prisma_client:/app/node_modules/.prisma
+      - app_next:/app/.next
+
+volumes:
+  pg_data:
+  app_node_modules:
+  app_prisma_client:
+  app_next:
