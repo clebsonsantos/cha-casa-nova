@@ -45,12 +45,22 @@ export default function ItemForm({ item, onClose, onSaved }: ItemFormProps) {
     setError("");
 
     try {
-      const form = new FormData();
-      form.append("file", file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: form });
+      // 1. Pede URL pré-assinada ao servidor (sem transferir bytes para o R2)
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contentType: file.type, size: file.size }),
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao fazer upload");
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar URL de upload");
+
+      // 2. Browser envia o arquivo diretamente ao R2
+      const putRes = await fetch(data.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!putRes.ok) throw new Error("Erro ao enviar arquivo ao R2");
 
       setImageKey(data.key);
     } catch (err) {
@@ -216,13 +226,15 @@ export default function ItemForm({ item, onClose, onSaved }: ItemFormProps) {
             <button
               type="button"
               onClick={() => setActive(!active)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${
-                active ? "bg-[#A9DCA4]" : "bg-gray-200"
+              className={`relative w-12 h-6 rounded-full transition-colors ring-1 ${
+                active
+                  ? "bg-[#A9DCA4] ring-[#A9DCA4]"
+                  : "bg-gray-300 ring-gray-300"
               }`}
             >
               <span
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                  active ? "translate-x-6" : "translate-x-1"
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                  active ? "translate-x-6" : "translate-x-0.5"
                 }`}
               />
             </button>

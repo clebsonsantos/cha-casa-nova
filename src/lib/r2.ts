@@ -2,6 +2,7 @@ import {
   S3Client,
   DeleteObjectCommand,
   GetObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { prisma } from "./prisma";
@@ -65,6 +66,7 @@ async function makeClient(): Promise<{ client: S3Client; bucket: string }> {
   const client = new S3Client({
     region: "auto",
     endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: true,
     credentials: {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,
@@ -86,6 +88,27 @@ export async function getPresignedImageUrl(
 
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
   return getSignedUrl(client, command, { expiresIn });
+}
+
+/**
+ * Gera URL pré-assinada para ESCRITA (PUT) — o browser faz o upload direto ao R2.
+ * Retorna { key, uploadUrl }. O servidor nunca transfere bytes de imagem para o R2.
+ */
+export async function getPresignedUploadUrl(
+  contentType: string,
+  ext: string,
+  expiresIn = 300
+): Promise<{ key: string; uploadUrl: string }> {
+  const { client, bucket } = await makeClient();
+
+  const key = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ContentType: contentType,
+  });
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn });
+  return { key, uploadUrl };
 }
 
 /** Remove um objeto do bucket */

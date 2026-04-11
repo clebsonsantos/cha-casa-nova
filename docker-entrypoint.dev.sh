@@ -1,12 +1,27 @@
 #!/bin/sh
 set -e
 
-echo "▶ [dev] Instalando dependências (caso package.json mudou)..."
-npm install --legacy-peer-deps --silent
+# ── Instala dependências só se package-lock.json mudou ─────────────────────
+LOCK_HASH=$(md5sum package-lock.json | cut -d' ' -f1)
+HASH_FILE=/app/node_modules/.install-hash
 
-echo "▶ [dev] Regenerando Prisma Client para o ambiente Alpine..."
-npx prisma generate
+if [ -f "$HASH_FILE" ] && [ "$(cat $HASH_FILE)" = "$LOCK_HASH" ]; then
+  echo "▶ [dev] Dependências já instaladas, pulando npm install..."
+else
+  echo "▶ [dev] Instalando dependências (package-lock mudou)..."
+  npm install --legacy-peer-deps --silent
+  echo "$LOCK_HASH" > "$HASH_FILE"
+  echo "▶ [dev] Regenerando Prisma Client..."
+  npx prisma generate
+fi
 
+# ── Garante Prisma Client no volume (primeira vez ou após limpeza) ──────────
+if [ ! -f /app/node_modules/.prisma/client/index.js ]; then
+  echo "▶ [dev] Regenerando Prisma Client (não encontrado)..."
+  npx prisma generate
+fi
+
+# ── Aguarda o banco ─────────────────────────────────────────────────────────
 echo "▶ [dev] Aguardando o banco de dados..."
 until npx prisma db execute --stdin <<'SQL' > /dev/null 2>&1
 SELECT 1;
@@ -16,6 +31,7 @@ do
   sleep 2
 done
 
+# ── Schema e seed ───────────────────────────────────────────────────────────
 echo "▶ [dev] Aplicando schema (db push)..."
 npx prisma db push --skip-generate
 

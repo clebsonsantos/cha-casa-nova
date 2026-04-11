@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/auth";
 // Chaves cujo valor nunca é enviado ao frontend (substituído por "••••••••")
 const SENSITIVE_KEYS = new Set([
   "mp_access_token",
+  "mp_webhook_secret",
   "r2_secret_access_key",
   "r2_access_key_id",
 ]);

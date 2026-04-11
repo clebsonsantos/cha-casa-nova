@@ -2,19 +2,14 @@
 FROM node:20-alpine
 WORKDIR /app
 
-# OpenSSL 1.1 necessário para o Prisma engine no Alpine
 RUN apk add --no-cache openssl libc6-compat ca-certificates
 
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Instala deps na imagem (serão sobrescritos pelo volume mount
-# só no host, mas o entrypoint re-instala para garantir binários corretos)
+# Apenas copia os arquivos necessários para o entrypoint saber o que instalar
 COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps
-
-COPY . .
-RUN npx prisma generate
+COPY prisma ./prisma/
 
 COPY docker-entrypoint.dev.sh /docker-entrypoint.dev.sh
 RUN chmod +x /docker-entrypoint.dev.sh
