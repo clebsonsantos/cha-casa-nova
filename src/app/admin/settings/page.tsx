@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 interface Config {
@@ -59,14 +60,18 @@ function SaveBar({ saving, saved, error }: { saving: boolean; saved: boolean; er
   );
 }
 
-export default function AdminSettingsPage() {
+function SettingsContent() {
+  const searchParams = useSearchParams();
   const [config, setConfig] = useState<Config>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [heroUploading, setHeroUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("Personalização");
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const tab = searchParams.get("tab");
+    return TABS.includes(tab as Tab) ? (tab as Tab) : "Personalização";
+  });
   const [newAdmin, setNewAdmin] = useState({ username: "", password: "", name: "" });
   const [adminSaving, setAdminSaving] = useState(false);
   const [adminError, setAdminError] = useState("");
@@ -365,5 +370,13 @@ export default function AdminSettingsPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function AdminSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsContent />
+    </Suspense>
   );
 }
