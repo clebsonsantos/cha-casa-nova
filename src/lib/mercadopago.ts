@@ -37,6 +37,7 @@ export async function getMPConfig(): Promise<{
 export async function createPreference(params: {
   itemId: string;
   itemName: string;
+  itemDescription?: string;
   amount: number;
   paymentMethod: "PIX" | "CARD";
   buyerName?: string;
@@ -45,7 +46,6 @@ export async function createPreference(params: {
   paymentDbId: string;
   appUrl: string;
 }) {
-  console.log("Criando preferência no Mercado Pago com params:", params);
   const config = await getMPConfig();
   if (!config) throw new Error("Mercado Pago não configurado");
 
@@ -87,6 +87,8 @@ export async function createPreference(params: {
         {
           id: params.itemId,
           title: params.itemName,
+          description: params.itemDescription,
+          category_id: "gift",
           quantity: 1,
           unit_price: params.amount,
           currency_id: "BRL",

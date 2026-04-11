@@ -27,6 +27,6 @@ echo "⏳ Aguardando o banco ficar pronto..."
 $COMPOSE exec db sh -c 'until pg_isready -U $POSTGRES_USER; do sleep 1; done'
 
 echo "✅ Tudo pronto!"
-echo "   App rodando em: $(grep NEXT_PUBLIC_APP_URL $ENV_FILE | cut -d= -f2)"
+echo "   App rodando em: $(grep APP_URL $ENV_FILE | cut -d= -f2)"
 echo ""
 echo "Logs: docker compose -f docker-compose.prod.yml logs -f app"

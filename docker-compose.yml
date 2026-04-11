@@ -40,7 +40,7 @@ services:
       R2_PUBLIC_URL:        ${R2_PUBLIC_URL:-}
       MP_ACCESS_TOKEN:      ${MP_ACCESS_TOKEN:-}
       MP_PUBLIC_KEY:        ${MP_PUBLIC_KEY:-}
-      NEXT_PUBLIC_APP_URL:  ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      APP_URL:              ${APP_URL:-http://localhost:3000}
       OPENSSL_CONF:         /dev/null
     ports:
       - "3000:3000"

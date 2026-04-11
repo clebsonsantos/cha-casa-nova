@@ -36,12 +36,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // APP_URL é resolvida em runtime (sem prefixo NEXT_PUBLIC_, que é inlined no build)
+    const appUrl = process.env.APP_URL || "http://localhost:3000";
 
     const preference = await createPreference({
       itemId: item.id,
       itemName: item.name,
+      itemDescription: item.description,
       amount,
       paymentMethod,
       buyerName,

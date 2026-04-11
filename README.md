@@ -66,7 +66,7 @@ POSTGRES_PASSWORD=postgres
 JWT_SECRET=troque-por-algo-secreto
 
 # URL pública da aplicação (usado pelo Mercado Pago para callbacks)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+APP_URL=http://localhost:3000
 ```
 
 **3. Suba os containers**
@@ -122,7 +122,7 @@ O comando `docker compose up -d` baixa a imagem automaticamente do Docker Hub e 
 |----------|-----------|
 | `POSTGRES_PASSWORD` | Senha do banco (use algo forte) |
 | `JWT_SECRET` | Segredo JWT — mínimo 32 caracteres aleatórios |
-| `NEXT_PUBLIC_APP_URL` | URL pública do site, ex: `https://meu-dominio.com.br` |
+| `APP_URL` | URL pública do site, ex: `https://meu-dominio.com.br` |
 
 As demais (R2, Mercado Pago) podem ficar em branco e ser configuradas depois pelo painel `/admin/settings`.
 
