@@ -21,7 +21,7 @@ echo "▶ [prod] Rodando migrations..."
 if [ -d "./prisma/migrations" ] && [ "$(ls -A ./prisma/migrations 2>/dev/null)" ]; then
   ./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
 else
-  ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --skip-generate
+  ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss
 fi
 
 echo "▶ [prod] Rodando seed (pula se dados já existem)..."
