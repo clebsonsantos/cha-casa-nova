@@ -32,7 +32,7 @@ export default function ItemCard({ item, onSelect }: ItemCardProps) {
             alt={item.name}
             fill
             className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            unoptimized
           />
         ) : (
           <div className="flex items-center justify-center h-full">

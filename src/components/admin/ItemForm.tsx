@@ -25,8 +25,14 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
   const [description, setDescription] = useState(item?.description || "");
   const [pixPrice, setPixPrice] = useState(item?.pixPrice?.toString() || "");
   const [cardPrice, setCardPrice] = useState(item?.cardPrice?.toString() || "");
+  // Se imageUrl veio como /api/image?key=xxx, extrai a key bruta para edição
+  const rawKey = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("/api/image?key=")) return decodeURIComponent(url.replace("/api/image?key=", ""));
+    return url;
+  };
   // Armazena a key do R2 (ex: "uploads/xxx.jpg") — nunca a URL pública
-  const [imageKey, setImageKey] = useState(item?.imageUrl || "");
+  const [imageKey, setImageKey] = useState(rawKey(item?.imageUrl || ""));
   // Preview: se for key R2 usa /api/image, senão usa a URL diretamente
   const previewUrl = imageKey
     ? imageKey.startsWith("http")

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
-import { getPresignedImageUrl, isR2Key } from "@/lib/r2";
+import { isR2Key } from "@/lib/r2";
 import { z } from "zod";
 
 const itemSchema = z.object({
@@ -13,17 +13,14 @@ const itemSchema = z.object({
   active: z.boolean().optional().default(true),
 });
 
-/** Resolve a imageUrl de um item: key R2 → URL pré-assinada, URL externa → mantém */
-async function resolveImageUrl(imageUrl: string | null | undefined): Promise<string | null> {
+/**
+ * Converte a imageUrl do banco para URL de exibição.
+ * Key R2 → /api/image?key=... (nunca expira, proxy server-side)
+ * URL externa → mantém como está
+ */
+function resolveImageUrl(imageUrl: string | null | undefined): string | null {
   if (!imageUrl) return null;
-  if (isR2Key(imageUrl)) {
-    try {
-      return await getPresignedImageUrl(imageUrl);
-    } catch {
-      return null;
-    }
-  }
-  // URL externa (legado ou hero_image de URL direta)
+  if (isR2Key(imageUrl)) return `/api/image?key=${encodeURIComponent(imageUrl)}`;
   return imageUrl;
 }
 
@@ -66,15 +63,12 @@ export async function GET(request: NextRequest) {
     prisma.item.count({ where }),
   ]);
 
-  // Resolve URLs pré-assinadas em paralelo
-  const resolved = await Promise.all(
-    items.map(async (item: typeof items[number]) => ({
-      ...item,
-      imageUrl: await resolveImageUrl(item.imageUrl),
-    }))
-  );
-
-  return NextResponse.json({ items: resolved, total, page, limit });
+  return NextResponse.json({
+    items: items.map((item) => ({ ...item, imageUrl: resolveImageUrl(item.imageUrl) })),
+    total,
+    page,
+    limit,
+  });
 }
 
 export async function POST(request: NextRequest) {

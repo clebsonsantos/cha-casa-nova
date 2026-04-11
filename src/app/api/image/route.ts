@@ -4,9 +4,9 @@ import { getPresignedImageUrl, isR2Key } from "@/lib/r2";
 /**
  * GET /api/image?key=uploads/xxx.jpg
  *
- * Gera uma URL pré-assinada de leitura e faz redirect 302.
- * O browser/CDN armazena a imagem em cache até o TTL expirar.
- * Não requer autenticação — as imagens de itens são públicas na vitrine.
+ * Busca a imagem do R2 e retorna os bytes diretamente (proxy).
+ * Funciona em qualquer dispositivo/rede sem necessidade de o browser
+ * acessar o R2 diretamente.
  */
 export async function GET(request: NextRequest) {
   const key = request.nextUrl.searchParams.get("key");
@@ -15,25 +15,28 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Key inválida" }, { status: 400 });
   }
 
-  // Previne path traversal
   const safe = key.replace(/\.\./g, "").replace(/\/\//g, "/");
 
   try {
-    const url = await getPresignedImageUrl(safe, 3600);
+    const presignedUrl = await getPresignedImageUrl(safe, 3600);
+    const r2Response = await fetch(presignedUrl);
 
-    return NextResponse.redirect(url, {
-      status: 302,
+    if (!r2Response.ok) {
+      return NextResponse.json({ error: "Imagem não encontrada" }, { status: 404 });
+    }
+
+    const contentType = r2Response.headers.get("content-type") || "image/jpeg";
+
+    return new NextResponse(r2Response.body, {
+      status: 200,
       headers: {
-        // Permite que o browser faça cache por 55 min (margem antes do TTL de 1h)
+        "Content-Type": contentType,
         "Cache-Control": "public, max-age=3300, s-maxage=3300",
       },
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes("não configurado")) {
-      return NextResponse.json(
-        { error: "R2 não configurado" },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: "R2 não configurado" }, { status: 503 });
     }
     return NextResponse.json({ error: "Imagem não encontrada" }, { status: 404 });
   }

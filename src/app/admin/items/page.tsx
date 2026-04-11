@@ -115,7 +115,7 @@ export default function AdminItemsPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[#D4EED1] overflow-hidden flex-shrink-0">
                         {item.imageUrl ? (
-                          <Image src={item.imageUrl} alt={item.name} width={40} height={40} className="object-cover w-full h-full" />
+                          <Image src={item.imageUrl} alt={item.name} width={40} height={40} className="object-cover w-full h-full" unoptimized />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[#A9DCA4]">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
