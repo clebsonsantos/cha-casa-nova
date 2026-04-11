@@ -23,8 +23,18 @@ export default function AdminItemsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [r2Configured, setR2Configured] = useState(false);
 
   const limit = 10;
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((cfg) => {
+        setR2Configured(!!(cfg.r2_account_id && cfg.r2_bucket_name));
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -184,6 +194,7 @@ export default function AdminItemsPage() {
       {showForm && (
         <ItemForm
           item={editItem}
+          r2Configured={r2Configured}
           onClose={() => { setShowForm(false); setEditItem(null); }}
           onSaved={() => { setShowForm(false); setEditItem(null); fetchItems(); }}
         />

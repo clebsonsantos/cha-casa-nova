@@ -45,6 +45,7 @@ export async function createPreference(params: {
   paymentDbId: string;
   appUrl: string;
 }) {
+  console.log("Criando preferência no Mercado Pago com params:", params);
   const config = await getMPConfig();
   if (!config) throw new Error("Mercado Pago não configurado");
 

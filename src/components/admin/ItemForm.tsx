@@ -15,11 +15,12 @@ interface Item {
 
 interface ItemFormProps {
   item?: Item | null;
+  r2Configured?: boolean;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function ItemForm({ item, onClose, onSaved }: ItemFormProps) {
+export default function ItemForm({ item, r2Configured = false, onClose, onSaved }: ItemFormProps) {
   const [name, setName] = useState(item?.name || "");
   const [description, setDescription] = useState(item?.description || "");
   const [pixPrice, setPixPrice] = useState(item?.pixPrice?.toString() || "");
@@ -143,20 +144,27 @@ export default function ItemForm({ item, onClose, onSaved }: ItemFormProps) {
                 )}
               </div>
               <div className="flex-1">
-                <label className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-2xl px-4 py-3 text-sm text-gray-500 flex items-center gap-2 transition-colors">
+                <label className={`border border-dashed rounded-2xl px-4 py-3 text-sm flex items-center gap-2 transition-colors ${
+                  r2Configured
+                    ? "cursor-pointer bg-gray-50 hover:bg-gray-100 border-gray-300 text-gray-500"
+                    : "cursor-not-allowed bg-gray-50 border-gray-200 text-gray-300"
+                }`}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  {uploading ? "Enviando..." : "Selecionar imagem"}
+                  {uploading ? "Enviando..." : r2Configured ? "Selecionar imagem" : "R2 não configurado"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
-                    disabled={uploading}
+                    disabled={uploading || !r2Configured}
                   />
                 </label>
-                {imageKey && (
+                {!r2Configured && (
+                  <p className="mt-1 text-xs text-gray-400">Configure o Cloudflare R2 em <span className="font-medium">Settings → Armazenamento</span></p>
+                )}
+                {imageKey && r2Configured && (
                   <button
                     type="button"
                     onClick={() => setImageKey("")}
@@ -226,15 +234,13 @@ export default function ItemForm({ item, onClose, onSaved }: ItemFormProps) {
             <button
               type="button"
               onClick={() => setActive(!active)}
-              className={`relative w-12 h-6 rounded-full transition-colors ring-1 ${
-                active
-                  ? "bg-[#A9DCA4] ring-[#A9DCA4]"
-                  : "bg-gray-300 ring-gray-300"
+              className={`relative w-11 h-6 rounded-full transition-colors overflow-hidden ${
+                active ? "bg-[#A9DCA4]" : "bg-gray-300"
               }`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
-                  active ? "translate-x-6" : "translate-x-0.5"
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
+                  active ? "left-[22px]" : "left-0.5"
                 }`}
               />
             </button>

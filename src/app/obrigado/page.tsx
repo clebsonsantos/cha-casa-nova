@@ -2,19 +2,85 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+
+type Status = "success" | "pending" | "failure" | "checking";
 
 function ThankYouContent() {
   const searchParams = useSearchParams();
-  const status = searchParams.get("status");
+  const urlStatus = searchParams.get("status");
+  const paymentId = searchParams.get("payment_id");
 
-  const isSuccess = status === "success";
-  const isPending = status === "pending";
+  const [status, setStatus] = useState<Status>(
+    urlStatus === "success" ? "success"
+    : urlStatus === "failure" ? "failure"
+    : paymentId ? "checking"
+    : "failure"
+  );
+
+  useEffect(() => {
+    if (status !== "checking" || !paymentId) return;
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 6; // 6 × 3s = 18s
+    const INTERVAL = 3000;
+
+    const check = async () => {
+      try {
+        const res = await fetch(`/api/payments/${paymentId}/status`);
+        const data = await res.json();
+
+        if (data.status === "APPROVED") {
+          setStatus("success");
+          return;
+        }
+        if (data.status === "REJECTED" || data.status === "CANCELLED") {
+          setStatus("failure");
+          return;
+        }
+      } catch {
+        // continua tentando
+      }
+
+      attempts++;
+      if (attempts >= MAX_ATTEMPTS) {
+        setStatus("pending");
+      }
+    };
+
+    // Verifica imediatamente e depois em intervalos
+    check();
+    const timer = setInterval(async () => {
+      await check();
+      if (attempts >= MAX_ATTEMPTS) clearInterval(timer);
+    }, INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [status, paymentId]);
+
+  if (status === "checking") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#A9DCA4] via-[#D4EED1] to-[#fafafa] p-4">
+        <div className="bg-white rounded-3xl shadow-xl p-10 max-w-md w-full text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#D4EED1] flex items-center justify-center">
+            <svg className="w-10 h-10 text-[#6DB567] animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          </div>
+          <h1 className="font-[var(--font-playfair)] text-2xl font-bold text-gray-800 mb-3">
+            Verificando pagamento...
+          </h1>
+          <p className="text-gray-400 text-sm">Isso leva alguns segundos.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#A9DCA4] via-[#D4EED1] to-[#fafafa] p-4">
       <div className="bg-white rounded-3xl shadow-xl p-10 max-w-md w-full text-center">
-        {isSuccess ? (
+        {status === "success" ? (
           <>
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#D4EED1] flex items-center justify-center">
               <svg className="w-10 h-10 text-[#6DB567]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +95,7 @@ function ThankYouContent() {
               sua contribuição para nosso novo lar. 💚
             </p>
           </>
-        ) : isPending ? (
+        ) : status === "pending" ? (
           <>
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-yellow-50 flex items-center justify-center">
               <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

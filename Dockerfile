@@ -44,7 +44,6 @@ COPY --from=builder /app/prisma                    ./prisma
 COPY --from=builder /app/node_modules/.prisma      ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma      ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma       ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma  ./node_modules/.bin/prisma
 
 # bcryptjs necessário para o entrypoint de seed
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs

@@ -18,10 +18,11 @@ echo "   banco disponível!"
 echo "▶ [prod] Rodando migrations..."
 # migrate deploy aplica migrations existentes (não altera esquema direto)
 # db push é fallback para projetos sem pasta migrations/
+PRISMA_BIN="node ./node_modules/prisma/build/index.js"
 if [ -d "./prisma/migrations" ] && [ "$(ls -A ./prisma/migrations 2>/dev/null)" ]; then
-  ./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
+  $PRISMA_BIN migrate deploy --schema=./prisma/schema.prisma
 else
-  ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss
+  $PRISMA_BIN db push --schema=./prisma/schema.prisma --accept-data-loss
 fi
 
 echo "▶ [prod] Rodando seed (pula se dados já existem)..."
@@ -62,4 +63,4 @@ seed().catch(e => { console.error('Seed falhou:', e.message); process.exit(1); }
 "
 
 echo "▶ [prod] Iniciando Next.js..."
-exec "\$@"
+exec "$@"
