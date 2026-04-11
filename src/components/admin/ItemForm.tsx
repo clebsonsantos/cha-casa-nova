@@ -35,48 +35,22 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
   };
   // Armazena a key do R2 (ex: "uploads/xxx.jpg") — nunca a URL pública
   const [imageKey, setImageKey] = useState(rawKey(item?.imageUrl || ""));
-  // Preview: se for key R2 usa /api/image, senão usa a URL diretamente
-  const previewUrl = imageKey
-    ? imageKey.startsWith("http")
-      ? imageKey
-      : `/api/image?key=${encodeURIComponent(imageKey)}`
-    : "";
   const [active, setActive] = useState(item?.active ?? true);
-  const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [localPreview, setLocalPreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // Preview: local (antes de salvar) ou via proxy do R2
+  const previewUrl = localPreview || (imageKey
+    ? imageKey.startsWith("http") ? imageKey : `/api/image?key=${encodeURIComponent(imageKey)}`
+    : "");
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setUploading(true);
-    setError("");
-
-    try {
-      // 1. Pede URL pré-assinada ao servidor (sem transferir bytes para o R2)
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, size: file.size }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao gerar URL de upload");
-
-      // 2. Browser envia o arquivo diretamente ao R2
-      const putRes = await fetch(data.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!putRes.ok) throw new Error("Erro ao enviar arquivo ao R2");
-
-      setImageKey(data.key);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro no upload");
-    } finally {
-      setUploading(false);
-    }
+    setPendingFile(file);
+    setLocalPreview(URL.createObjectURL(file));
+    setImageKey("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,6 +73,27 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
     }
 
     try {
+      // Se há arquivo pendente, faz upload agora (antes de salvar)
+      let finalImageKey = imageKey;
+      if (pendingFile) {
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contentType: pendingFile.type, size: pendingFile.size }),
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Erro ao gerar URL de upload");
+
+        const putRes = await fetch(uploadData.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": pendingFile.type },
+          body: pendingFile,
+        });
+        if (!putRes.ok) throw new Error("Erro ao enviar arquivo ao R2");
+
+        finalImageKey = uploadData.key;
+      }
+
       const url = item ? `/api/items/${item.id}` : "/api/items";
       const method = item ? "PUT" : "POST";
 
@@ -110,7 +105,7 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
           description,
           pixPrice: pix,
           cardPrice: card,
-          imageUrl: imageKey || undefined,
+          imageUrl: finalImageKey || undefined,
           active,
         }),
       });
@@ -160,22 +155,22 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  {uploading ? "Enviando..." : r2Configured ? "Selecionar imagem" : "R2 não configurado"}
+                  {saving ? "Salvando..." : r2Configured ? "Selecionar imagem" : "R2 não configurado"}
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
-                    disabled={uploading || !r2Configured}
+                    disabled={saving || !r2Configured}
                   />
                 </label>
                 {!r2Configured && (
                   <p className="mt-1 text-xs text-gray-400">Configure o Cloudflare R2 em <span className="font-medium">Settings → Armazenamento</span></p>
                 )}
-                {imageKey && r2Configured && (
+                {(imageKey || pendingFile) && r2Configured && (
                   <button
                     type="button"
-                    onClick={() => setImageKey("")}
+                    onClick={() => { setImageKey(""); setPendingFile(null); setLocalPreview(""); }}
                     className="mt-1 text-xs text-red-400 hover:text-red-600"
                   >
                     Remover imagem
@@ -271,7 +266,7 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
             </button>
             <button
               type="submit"
-              disabled={saving || uploading}
+              disabled={saving}
               className="flex-1 bg-[#A9DCA4] hover:bg-[#6DB567] text-white font-semibold py-3 rounded-2xl disabled:opacity-60"
             >
               {saving ? "Salvando..." : item ? "Salvar alterações" : "Criar item"}
