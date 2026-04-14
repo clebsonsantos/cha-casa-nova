@@ -20,6 +20,7 @@ interface Config {
   social_instagram?: string;
   social_whatsapp?: string;
   social_facebook?: string;
+  payment_mode?: "mercadopago" | "pix_manual";
 }
 
 const TABS = ["Personalização", "Redes Sociais", "Armazenamento", "Pagamentos", "Administradores"] as const;
