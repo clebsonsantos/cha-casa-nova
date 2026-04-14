@@ -316,37 +316,68 @@ function SettingsContent() {
       {/* ── Pagamentos (MP) ── */}
       {activeTab === "Pagamentos" && (
         <form onSubmit={handleSave} className="bg-white rounded-3xl border border-gray-100 p-6 space-y-5 overflow-hidden">
-          <p className="text-sm text-gray-400">
-            Credenciais do Mercado Pago. Acesse{" "}
-            <a href="https://www.mercadopago.com.br/developers" target="_blank" rel="noopener noreferrer" className="text-[#6DB567] hover:underline">
-              mercadopago.com.br/developers
-            </a>{" "}
-            → Credenciais de produção.
-          </p>
-          <div className="grid md:grid-cols-2 gap-4">
-            <Field label="Access Token" type="password" value={config.mp_access_token || ""} onChange={set("mp_access_token")} placeholder="APP_USR-... (deixe em branco para manter)" hint="Painel MP → Configurações → Credenciais" />
-            <Field label="Public Key" value={config.mp_public_key || ""} onChange={set("mp_public_key")} placeholder="APP_USR-..." />
-          </div>
+          {/* Modo de pagamento */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-1">URL do Webhook</p>
-            <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3 min-w-0 overflow-hidden">
-              <code className="text-xs text-gray-500 flex-1 break-all min-w-0">
-                {typeof window !== "undefined" ? window.location.origin : "https://seu-dominio.com"}/api/webhook/mercadopago
-              </code>
-              <button type="button" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/webhook/mercadopago`)} className="text-xs text-[#6DB567] hover:underline flex-shrink-0">
-                Copiar
-              </button>
+            <p className="text-sm font-medium text-gray-700 mb-3">Modo de pagamento</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {[
+                { value: "mercadopago", label: "Mercado Pago", desc: "Integração via gateway MP (PIX + Cartão)" },
+                { value: "pix_manual", label: "PIX Copia e Cola", desc: "Sem gateway — comprador paga e envia comprovante" },
+              ].map(({ value, label, desc }) => {
+                const active = (config.payment_mode || "mercadopago") === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => set("payment_mode")(value)}
+                    className={`text-left p-4 rounded-2xl border-2 transition-colors ${
+                      active ? "border-[#A9DCA4] bg-[#F0FAF0]" : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <p className={`text-sm font-semibold ${active ? "text-[#6DB567]" : "text-gray-700"}`}>{label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
+                  </button>
+                );
+              })}
             </div>
-            <p className="text-xs text-gray-400 mt-1">Configure em Seu negócio → Configurações → Notificações no painel do MP.</p>
           </div>
-          <Field
-            label="Chave de Assinatura do Webhook"
-            type="password"
-            value={config.mp_webhook_secret || ""}
-            onChange={set("mp_webhook_secret")}
-            placeholder="(deixe em branco para manter)"
-            hint="Gerada automaticamente pelo MP ao salvar a URL do webhook acima."
-          />
+
+          {(config.payment_mode || "mercadopago") === "mercadopago" && (
+            <>
+              <p className="text-sm text-gray-400">
+                Credenciais do Mercado Pago. Acesse{" "}
+                <a href="https://www.mercadopago.com.br/developers" target="_blank" rel="noopener noreferrer" className="text-[#6DB567] hover:underline">
+                  mercadopago.com.br/developers
+                </a>{" "}
+                → Credenciais de produção.
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <Field label="Access Token" type="password" value={config.mp_access_token || ""} onChange={set("mp_access_token")} placeholder="APP_USR-... (deixe em branco para manter)" hint="Painel MP → Configurações → Credenciais" />
+                <Field label="Public Key" value={config.mp_public_key || ""} onChange={set("mp_public_key")} placeholder="APP_USR-..." />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">URL do Webhook</p>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3 min-w-0 overflow-hidden">
+                  <code className="text-xs text-gray-500 flex-1 break-all min-w-0">
+                    {typeof window !== "undefined" ? window.location.origin : "https://seu-dominio.com"}/api/webhook/mercadopago
+                  </code>
+                  <button type="button" onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/webhook/mercadopago`)} className="text-xs text-[#6DB567] hover:underline flex-shrink-0">
+                    Copiar
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Configure em Seu negócio → Configurações → Notificações no painel do MP.</p>
+              </div>
+              <Field
+                label="Chave de Assinatura do Webhook"
+                type="password"
+                value={config.mp_webhook_secret || ""}
+                onChange={set("mp_webhook_secret")}
+                placeholder="(deixe em branco para manter)"
+                hint="Gerada automaticamente pelo MP ao salvar a URL do webhook acima."
+              />
+            </>
+          )}
+
           <SaveBar saving={saving} saved={saved} error={error} />
         </form>
       )}

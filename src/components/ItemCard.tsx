@@ -10,16 +10,18 @@ interface Item {
   pixPrice: number;
   cardPrice: number;
   imageUrl?: string | null;
+  pixCode?: string | null;
   _count?: { payments: number };
 }
 
 interface ItemCardProps {
   item: Item;
   onSelect: (item: Item, method: "PIX" | "CARD") => void;
+  pixManual?: boolean;
 }
 
-export default function ItemCard({ item, onSelect }: ItemCardProps) {
-  const [method, setMethod] = useState<"PIX" | "CARD">("PIX");
+export default function ItemCard({ item, onSelect, pixManual = false }: ItemCardProps) {
+  const [method, setMethod] = useState<"PIX" | "CARD">(pixManual ? "PIX" : "PIX");
 
   const price = method === "PIX" ? item.pixPrice : item.cardPrice;
 
@@ -56,28 +58,30 @@ export default function ItemCard({ item, onSelect }: ItemCardProps) {
           <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
         </div>
 
-        <div className="flex rounded-2xl border border-[#A9DCA4] overflow-hidden text-sm font-medium">
-          <button
-            onClick={() => setMethod("PIX")}
-            className={`flex-1 py-2 transition-colors ${
-              method === "PIX"
-                ? "bg-[#A9DCA4] text-white"
-                : "text-[#6DB567] hover:bg-[#D4EED1]"
-            }`}
-          >
-            PIX
-          </button>
-          <button
-            onClick={() => setMethod("CARD")}
-            className={`flex-1 py-2 transition-colors ${
-              method === "CARD"
-                ? "bg-[#A9DCA4] text-white"
-                : "text-[#6DB567] hover:bg-[#D4EED1]"
-            }`}
-          >
-            Cartão
-          </button>
-        </div>
+        {!pixManual && (
+          <div className="flex rounded-2xl border border-[#A9DCA4] overflow-hidden text-sm font-medium">
+            <button
+              onClick={() => setMethod("PIX")}
+              className={`flex-1 py-2 transition-colors ${
+                method === "PIX"
+                  ? "bg-[#A9DCA4] text-white"
+                  : "text-[#6DB567] hover:bg-[#D4EED1]"
+              }`}
+            >
+              PIX
+            </button>
+            <button
+              onClick={() => setMethod("CARD")}
+              className={`flex-1 py-2 transition-colors ${
+                method === "CARD"
+                  ? "bg-[#A9DCA4] text-white"
+                  : "text-[#6DB567] hover:bg-[#D4EED1]"
+              }`}
+            >
+              Cartão
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mt-auto">
           <span className="text-2xl font-bold text-[#C9A84C]">

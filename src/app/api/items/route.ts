@@ -10,6 +10,7 @@ const itemSchema = z.object({
   pixPrice: z.number().positive("Preço PIX deve ser positivo"),
   cardPrice: z.number().positive("Preço Cartão deve ser positivo"),
   imageUrl: z.string().optional().or(z.literal("")),
+  pixCode: z.string().optional(),
   active: z.boolean().optional().default(true),
 });
 

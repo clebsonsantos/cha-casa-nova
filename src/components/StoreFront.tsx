@@ -11,6 +11,7 @@ interface Item {
   pixPrice: number;
   cardPrice: number;
   imageUrl?: string | null;
+  pixCode?: string | null;
   _count?: { payments: number };
 }
 
@@ -25,8 +26,16 @@ export default function StoreFront() {
   const [order, setOrder] = useState("asc");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<"PIX" | "CARD">("PIX");
+  const [pixManual, setPixManual] = useState(false);
 
   const limit = 12;
+
+  useEffect(() => {
+    fetch("/api/public-config")
+      .then((r) => r.json())
+      .then((data) => setPixManual(data.payment_mode === "pix_manual"))
+      .catch(() => {});
+  }, []);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -116,7 +125,7 @@ export default function StoreFront() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {items.map((item) => (
-            <ItemCard key={item.id} item={item} onSelect={handleSelect} />
+            <ItemCard key={item.id} item={item} onSelect={handleSelect} pixManual={pixManual} />
           ))}
         </div>
       )}
@@ -149,6 +158,7 @@ export default function StoreFront() {
         <CheckoutModal
           item={selectedItem}
           method={selectedMethod}
+          pixManual={pixManual}
           onClose={() => setSelectedItem(null)}
         />
       )}

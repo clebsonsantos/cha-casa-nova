@@ -10,6 +10,7 @@ interface Item {
   pixPrice: number;
   cardPrice: number;
   imageUrl?: string | null;
+  pixCode?: string | null;
   active: boolean;
 }
 
@@ -25,6 +26,7 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
   const [description, setDescription] = useState(item?.description || "");
   const [pixPrice, setPixPrice] = useState(item?.pixPrice?.toString() || "");
   const [cardPrice, setCardPrice] = useState(item?.cardPrice?.toString() || "");
+  const [pixCode, setPixCode] = useState(item?.pixCode || "");
   // Se imageUrl veio como /api/image?key=xxx, extrai a key bruta para edição
   const rawKey = (url: string) => {
     if (!url) return "";
@@ -106,6 +108,7 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
           pixPrice: pix,
           cardPrice: card,
           imageUrl: finalImageKey || undefined,
+          pixCode: pixCode || undefined,
           active,
         }),
       });
@@ -231,6 +234,20 @@ export default function ItemForm({ item, r2Configured = false, onClose, onSaved 
                 className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#A9DCA4]"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              PIX Copia e Cola <span className="text-gray-400 text-xs">(opcional)</span>
+            </label>
+            <textarea
+              value={pixCode}
+              onChange={(e) => setPixCode(e.target.value)}
+              rows={2}
+              placeholder="00020126580014BR.GOV.BCB.PIX..."
+              className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#A9DCA4] resize-none font-mono"
+            />
+            <p className="text-xs text-gray-400 mt-1">Código completo para pagamento via PIX manual.</p>
           </div>
 
           <div className="flex items-center gap-3">

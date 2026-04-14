@@ -33,7 +33,7 @@ done
 
 # ── Schema e seed ───────────────────────────────────────────────────────────
 echo "▶ [dev] Aplicando schema (db push)..."
-npx prisma db push --skip-generate
+npx prisma db push
 
 echo "▶ [dev] Rodando seed (pula se dados já existem)..."
 node -e "

@@ -10,6 +10,7 @@ interface Payment {
   paymentMethod: "PIX" | "CARD";
   status: "APPROVED" | "PENDING" | "REJECTED" | "CANCELLED";
   message?: string | null;
+  receiptUrl?: string | null;
   createdAt: string;
   item: { name: string };
 }
@@ -34,6 +35,7 @@ export default function AdminPaymentsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
 
   const limit = 20;
 
@@ -54,6 +56,7 @@ export default function AdminPaymentsPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
+    <>
     <div className="p-6 lg:p-8 pt-20 lg:pt-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-[var(--font-playfair)] text-2xl font-bold text-gray-800">Pagamentos</h1>
@@ -91,6 +94,7 @@ export default function AdminPaymentsPage() {
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-4">Valor</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-4">Status</th>
                 <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-4 hidden lg:table-cell">Data</th>
+                <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-4">Comprov.</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -130,6 +134,18 @@ export default function AdminPaymentsPage() {
                       minute: "2-digit",
                     })}
                   </td>
+                  <td className="px-4 py-4">
+                    {p.receiptUrl ? (
+                      <button
+                        onClick={() => setReceiptUrl(p.receiptUrl!)}
+                        className="text-xs text-[#6DB567] hover:underline font-medium"
+                      >
+                        Ver
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -145,5 +161,36 @@ export default function AdminPaymentsPage() {
         </div>
       )}
     </div>
+
+      {/* Modal comprovante */}
+      {receiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setReceiptUrl(null)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <p className="font-semibold text-gray-700">Comprovante</p>
+              <div className="flex items-center gap-3">
+                <a href={receiptUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#6DB567] hover:underline">
+                  Abrir em nova aba
+                </a>
+                <button onClick={() => setReceiptUrl(null)} className="p-1.5 rounded-xl hover:bg-gray-100">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto">
+              {receiptUrl.includes(".pdf") ? (
+                <iframe src={receiptUrl} className="w-full h-[70vh]" title="Comprovante" />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={receiptUrl} alt="Comprovante" className="w-full object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
